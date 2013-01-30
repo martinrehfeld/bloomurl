@@ -1,0 +1,11 @@
+{application, bloomurl,
+ [
+  {description, "Tiny bloom filters with URL encoded serialization"},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {env, []}
+ ]}.
