@@ -70,6 +70,33 @@ deserialization_fixture_test() ->
         ?IT:deserialize(<<"240.4.BAQAQCAAAAAAAAAA_qoOQQAAAAAAAAAQQAAAIGQA">>)).
 
 
+gc_test() ->
+    erlang:garbage_collect(),
+    StartSize = erlang:memory(binary),
+
+    BloomFilter = ?IT:new(10000000, 0.1),
+    FilterSize = byte_size(element(1, BloomFilter)),
+    AllocatedSize = erlang:memory(binary),
+    ?assertMatch({_, _, _}, BloomFilter),
+
+    erlang:garbage_collect(),
+    GCedSize = erlang:memory(binary),
+
+    %% To fail test, reference bloom filter after GC
+    %% (NOTE: call to memory seems to invoke GC)
+    %?assertMatch({_, _, _}, BloomFilter),
+
+    ?assert(FilterSize > StartSize),
+    ?assert(AllocatedSize > StartSize andalso GCedSize < AllocatedSize),
+
+    %% Check that nothing else affected the test
+    AllocatedRatio = (StartSize + FilterSize) / AllocatedSize,
+    ?assert(AllocatedRatio > 0.9 andalso AllocatedRatio < 1.1),
+    GCedRatio = GCedSize / StartSize,
+    ?assert(GCedRatio > 0.9 andalso GCedRatio < 1.1),
+
+    ok.
+
 %%
 %% HELPERS
 %%
